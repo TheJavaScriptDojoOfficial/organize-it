@@ -1,19 +1,15 @@
-import type { CategoryName } from "./organizer";
-
-export type SettingsSaveState = "idle" | "saving" | "saved" | "error";
-
-export interface CategoryRuleSettings {
-  enabled: boolean;
-  destinationFolderName: string;
-}
-
-export type CategoryRules = Record<CategoryName, CategoryRuleSettings>;
-
 export interface AppSettings {
-  sourcePath: string;
-  destinationPath: string;
-  askBeforeOrganizing: boolean;
-  enablePreview: boolean;
-  keepOriginalFiles: boolean;
-  categoryRules: CategoryRules;
+  confirmBeforeOrganize: boolean;
+  enablePreviewBeforeOrganizing: boolean;
+  rememberLastSelectedFolder: boolean;
+  defaultOrganizationFolder: string;
+  lastSelectedFolder: string;
 }
+
+export const DEFAULT_SETTINGS: AppSettings = {
+  confirmBeforeOrganize: true,
+  enablePreviewBeforeOrganizing: true,
+  rememberLastSelectedFolder: true,
+  defaultOrganizationFolder: "",
+  lastSelectedFolder: "",
+};

@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { open } from "@tauri-apps/plugin-dialog";
 import CategoryCard from "../components/organizer/CategoryCard";
 import Button from "../components/ui/Button";
@@ -6,6 +7,7 @@ import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
 import SectionHeader from "../components/ui/SectionHeader";
 import StatusMessage from "../components/ui/StatusMessage";
+import { useSettings } from "../context/SettingsContext";
 import { organizeFolder, scanFolder } from "../lib/api/organizer-api";
 import type { CategoryName, OrganizeResult, ScanResult } from "../lib/types/organizer";
 
@@ -34,11 +36,39 @@ const CATEGORY_META: Record<
 };
 
 export default function OrganizerPage() {
+  const { settings, updateSettings } = useSettings();
   const [previewState, setPreviewState] = useState<PageState>("empty");
-  const [selectedPath, setSelectedPath] = useState<string>("");
+  const [selectedPath, setSelectedPath] = useState<string>(() => {
+    if (settings.rememberLastSelectedFolder && settings.lastSelectedFolder.length > 0) {
+      return settings.lastSelectedFolder;
+    }
+    return settings.defaultOrganizationFolder;
+  });
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [organizeResult, setOrganizeResult] = useState<OrganizeResult | null>(null);
   const [errorText, setErrorText] = useState<string>("");
+
+  useEffect(() => {
+    if (selectedPath.length > 0) {
+      return;
+    }
+
+    if (settings.rememberLastSelectedFolder && settings.lastSelectedFolder.length > 0) {
+      setSelectedPath(settings.lastSelectedFolder);
+      setPreviewState("selected");
+      return;
+    }
+
+    if (settings.defaultOrganizationFolder.length > 0) {
+      setSelectedPath(settings.defaultOrganizationFolder);
+      setPreviewState("selected");
+    }
+  }, [
+    selectedPath,
+    settings.defaultOrganizationFolder,
+    settings.lastSelectedFolder,
+    settings.rememberLastSelectedFolder,
+  ]);
 
   const activeState = previewState;
   const hasSelectedPath = selectedPath.length > 0;
@@ -59,6 +89,13 @@ export default function OrganizerPage() {
     setScanResult(null);
     setOrganizeResult(null);
     setErrorText("");
+  }
+
+  function persistLastSelectedFolder(path: string): void {
+    if (!settings.rememberLastSelectedFolder) {
+      return;
+    }
+    updateSettings({ lastSelectedFolder: path });
   }
 
   async function handleSelectFolder(): Promise<void> {
@@ -82,6 +119,7 @@ export default function OrganizerPage() {
       setPreviewState("selected");
       setScanResult(null);
       setOrganizeResult(null);
+      persistLastSelectedFolder(selected);
     } catch {
       setPreviewState("error");
       setErrorText("Could not open folder picker. Please retry in the desktop app.");
@@ -109,6 +147,18 @@ export default function OrganizerPage() {
 
   async function handleOrganizeClick(): Promise<void> {
     if (!hasSelectedPath || activeState === "organizing" || activeState === "scanning") {
+      return;
+    }
+
+    if (settings.confirmBeforeOrganize) {
+      const approved = window.confirm(`Organize files in this folder?\n\n${selectedPath}`);
+      if (!approved) {
+        return;
+      }
+    }
+
+    if (settings.enablePreviewBeforeOrganizing && !scanResult) {
+      await handleScanClick();
       return;
     }
 
@@ -144,6 +194,10 @@ export default function OrganizerPage() {
             Clean your folders in one click with the precision of a digital atelier. Automated
             categorization at your fingertips.
           </p>
+          <Link to="/settings" className="inline-flex items-center gap-2 text-sm font-medium text-[#4d44e3]">
+            <span className="material-symbols-outlined text-[18px]">settings</span>
+            Open settings
+          </Link>
         </section>
 
         {activeState === "success" && organizeResult ? (

@@ -2,8 +2,15 @@ import DestinationFolderCard from "../components/settings/DestinationFolderCard"
 import SettingToggleRow from "../components/settings/SettingToggleRow";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
+import { useSettings } from "../context/SettingsContext";
 
 export default function SettingsPage() {
+  const { settings, updateSettings, resetSettings } = useSettings();
+
+  function savePatch(patch: Parameters<typeof updateSettings>[0]): void {
+    updateSettings(patch);
+  }
+
   return (
     <main className="min-h-screen bg-[#f7f9fb] px-6 py-10 text-[#2a3439]">
       <div className="mx-auto max-w-2xl space-y-8">
@@ -19,17 +26,40 @@ export default function SettingsPage() {
           </p>
         </header>
 
-        <DestinationFolderCard />
+        <DestinationFolderCard
+          folderPath={settings.defaultOrganizationFolder}
+          onFolderChange={(path) => {
+            savePatch({ defaultOrganizationFolder: path });
+          }}
+        />
 
         <div className="space-y-4">
           <SettingToggleRow
             title="Ask confirmation before organizing"
             description="Prompt for approval for each batch processing action to prevent accidental moves."
-            checked
+            checked={settings.confirmBeforeOrganize}
+            onChange={(checked) => {
+              savePatch({ confirmBeforeOrganize: checked });
+            }}
           />
           <SettingToggleRow
             title="Enable preview before organizing"
             description="Show a generated visualization of folder structure before any changes are applied."
+            checked={settings.enablePreviewBeforeOrganizing}
+            onChange={(checked) => {
+              savePatch({ enablePreviewBeforeOrganizing: checked });
+            }}
+          />
+          <SettingToggleRow
+            title="Remember last selected folder"
+            description="Automatically prefill your most recent folder when you return to organize files."
+            checked={settings.rememberLastSelectedFolder}
+            onChange={(checked) => {
+              savePatch({
+                rememberLastSelectedFolder: checked,
+                ...(checked ? {} : { lastSelectedFolder: "" }),
+              });
+            }}
           />
         </div>
 
@@ -41,7 +71,13 @@ export default function SettingsPage() {
                 Revert all organization rules to factory defaults.
               </p>
             </div>
-            <Button variant="danger" size="sm">
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => {
+                resetSettings();
+              }}
+            >
               Reset
             </Button>
           </div>
