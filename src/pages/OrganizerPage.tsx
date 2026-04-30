@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { open } from "@tauri-apps/plugin-dialog";
 import CategoryCard from "../components/organizer/CategoryCard";
@@ -37,6 +37,7 @@ const CATEGORY_META: Record<
 
 export default function OrganizerPage() {
   const { settings, updateSettings } = useSettings();
+  const didHydrateInitialPathRef = useRef(false);
   const [previewState, setPreviewState] = useState<PageState>("empty");
   const [selectedPath, setSelectedPath] = useState<string>(() => {
     if (settings.rememberLastSelectedFolder && settings.lastSelectedFolder.length > 0) {
@@ -51,6 +52,11 @@ export default function OrganizerPage() {
   const [isProcessingOrganize, setIsProcessingOrganize] = useState(false);
 
   useEffect(() => {
+    if (didHydrateInitialPathRef.current) {
+      return;
+    }
+    didHydrateInitialPathRef.current = true;
+
     if (selectedPath.length > 0) {
       return;
     }
