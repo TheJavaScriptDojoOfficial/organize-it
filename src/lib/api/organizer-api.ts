@@ -47,6 +47,26 @@ function asCategoryName(value: string): CategoryName {
   return "Others";
 }
 
+function buildNormalizedCategorySummary(
+  categories: Array<{ name: string; count: number }>,
+  categorizedFiles: ScannedFileItem[] = [],
+): CategoryScanSummary[] {
+  return ORGANIZER_CATEGORIES.map((category) => {
+    const matchingCategory = categories.find((entry) => asCategoryName(entry.name) === category);
+    const sampleFileNames = categorizedFiles
+      .filter((item) => item.category === category)
+      .slice(0, 3)
+      .map((item) => item.name);
+
+    return {
+      category,
+      fileCount: matchingCategory?.count ?? 0,
+      totalSizeInBytes: 0,
+      sampleFileNames,
+    };
+  });
+}
+
 function isContractScanResponse(value: unknown): value is ContractScanResponse {
   if (!value || typeof value !== "object") {
     return false;
@@ -64,15 +84,7 @@ function isContractScanResponse(value: unknown): value is ContractScanResponse {
 }
 
 function mapContractToScanResult(contract: ContractScanResponse): ScanResult {
-  const categorySummary: CategoryScanSummary[] = ORGANIZER_CATEGORIES.map((category) => {
-    const hit = contract.categories.find((entry) => asCategoryName(entry.name) === category);
-    return {
-      category,
-      fileCount: hit?.count ?? 0,
-      totalSizeInBytes: 0,
-      sampleFileNames: [],
-    };
-  });
+  const categorySummary = buildNormalizedCategorySummary(contract.categories);
 
   return {
     sourcePath: contract.sourcePath,
@@ -94,13 +106,20 @@ function mapLegacyToScanResult(payload: LegacyScanEnvelope): ScanResult {
     throw new Error("Scan response missing data payload.");
   }
 
+  const categorizedFiles = data.categorizedFiles ?? [];
+  const summaryFromLegacy = (data.categorySummary ?? []).map((entry) => ({
+    name: entry.category,
+    count: entry.fileCount,
+  }));
+  const categorySummary = buildNormalizedCategorySummary(summaryFromLegacy, categorizedFiles);
+
   return {
     sourcePath: data.sourcePath,
     scannedAtIso: data.scannedAtIso,
     totalFiles: data.totalFiles,
-    categorizedFiles: data.categorizedFiles ?? [],
-    categorySummary: data.categorySummary ?? [],
-    uncategorizedFileCount: data.uncategorizedFileCount ?? 0,
+    categorizedFiles,
+    categorySummary,
+    uncategorizedFileCount: categorySummary.find((item) => item.category === "Others")?.fileCount ?? 0,
   };
 }
 

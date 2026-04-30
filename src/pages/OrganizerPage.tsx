@@ -214,10 +214,17 @@ export default function OrganizerPage() {
                     : "No scan data yet"
               }
             />
+            <p className="text-sm text-[#566166]">Files will be moved into categorized folders</p>
             {scanResult ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-6 md:grid-rows-2">
                 {sortedCards.map((categorySummary) => {
                   const meta = CATEGORY_META[categorySummary.category];
+                  const hasSamples = categorySummary.sampleFileNames.length > 0;
+                  const samplePreview = hasSamples
+                    ? categorySummary.sampleFileNames.slice(0, 3).join(", ")
+                    : categorySummary.fileCount === 0
+                      ? "0 files"
+                      : undefined;
                   return (
                     <CategoryCard
                       key={categorySummary.category}
@@ -226,7 +233,7 @@ export default function OrganizerPage() {
                       count={String(categorySummary.fileCount)}
                       large={meta.large}
                       tone={meta.tone}
-                      sample={categorySummary.sampleFileNames.join(", ")}
+                      sample={samplePreview}
                     />
                   );
                 })}
