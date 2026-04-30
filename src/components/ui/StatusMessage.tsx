@@ -5,9 +5,10 @@ interface StatusMessageProps {
   title: string;
   detail: string;
   actionLabel?: string;
+  onActionClick?: () => void;
 }
 
-export default function StatusMessage({ title, detail, actionLabel }: StatusMessageProps) {
+export default function StatusMessage({ title, detail, actionLabel, onActionClick }: StatusMessageProps) {
   return (
     <Card className="flex flex-col gap-4 border-l-4 border-[#4d44e3] p-5 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-3">
@@ -20,7 +21,7 @@ export default function StatusMessage({ title, detail, actionLabel }: StatusMess
         </div>
       </div>
       {actionLabel ? (
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" onClick={onActionClick}>
           {actionLabel}
         </Button>
       ) : null}

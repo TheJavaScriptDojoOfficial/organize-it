@@ -139,31 +139,13 @@ export const MOCK_SCAN_RESPONSE: ScanResult = {
 
 export const MOCK_ORGANIZE_RESPONSE: OrganizeResult = {
   sourcePath: MOCK_SELECTED_PATH,
-  outputPath: "/Users/demo/Downloads/Organized",
-  organizedAtIso: "2026-04-30T10:18:00.000Z",
-  movedFiles: [
-    {
-      fileName: "vacation_photo_01.jpg",
-      fromPath: "/Users/demo/Downloads/vacation_photo_01.jpg",
-      toPath: "/Users/demo/Downloads/Organized/Images/vacation_photo_01.jpg",
-      category: "Images",
-    },
-    {
-      fileName: "launch_demo.mov",
-      fromPath: "/Users/demo/Downloads/launch_demo.mov",
-      toPath: "/Users/demo/Downloads/Organized/Videos/launch_demo.mov",
-      category: "Videos",
-    },
-    {
-      fileName: "quarterly_report.pdf",
-      fromPath: "/Users/demo/Downloads/quarterly_report.pdf",
-      toPath: "/Users/demo/Downloads/Organized/PDF/quarterly_report.pdf",
-      category: "PDF",
-    },
-  ],
+  totalFiles: 68,
+  categories: MOCK_SCAN_RESPONSE.categorySummary,
+  movedCount: 68,
+  failedFiles: [],
+  message: "Organization completed successfully.",
   skippedFiles: ["readme.txt"],
   createdFolders: ["Images", "Videos", "PDF", "Documents", "Code Files", "Others", "Zip", "Applications"],
-  totalMovedFiles: 68,
 };
 
 function delay(ms: number): Promise<void> {

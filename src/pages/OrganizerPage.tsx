@@ -6,8 +6,7 @@ import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
 import SectionHeader from "../components/ui/SectionHeader";
 import StatusMessage from "../components/ui/StatusMessage";
-import { mockOrganizeFolder } from "../lib/api/mock-organizer";
-import { scanFolder } from "../lib/api/organizer-api";
+import { organizeFolder, scanFolder } from "../lib/api/organizer-api";
 import type { CategoryName, OrganizeResult, ScanResult } from "../lib/types/organizer";
 
 type PageState =
@@ -109,21 +108,24 @@ export default function OrganizerPage() {
   }
 
   async function handleOrganizeClick(): Promise<void> {
-    if (!scanResult || activeState === "organizing" || activeState === "scanning") {
+    if (!scanResult || !hasSelectedPath || activeState === "organizing" || activeState === "scanning") {
       return;
     }
 
     setPreviewState("organizing");
     setErrorText("");
     try {
-      const result = await mockOrganizeFolder();
+      const result = await organizeFolder(selectedPath);
       setOrganizeResult(result);
       setPreviewState("success");
-    } catch {
+    } catch (error) {
       setPreviewState("error");
-      setErrorText("Organization failed in mock mode.");
+      const message = error instanceof Error ? error.message : "Organization failed unexpectedly.";
+      setErrorText(`Organization failed: ${message}`);
     }
   }
+
+  const hasPartialFailures = Boolean(organizeResult && organizeResult.failedFiles.length > 0);
 
   return (
     <main className="min-h-screen bg-[#f7f9fb] px-6 py-10 text-[#2a3439]">
@@ -138,9 +140,12 @@ export default function OrganizerPage() {
 
         {activeState === "success" && organizeResult ? (
           <StatusMessage
-            title="Files organized successfully"
-            detail={`${organizeResult.totalMovedFiles} files moved • ${organizeResult.createdFolders.length} folders created`}
-            actionLabel="Undo"
+            title={hasPartialFailures ? "Organization completed with partial failures" : "Files organized successfully"}
+            detail={`${organizeResult.movedCount}/${organizeResult.totalFiles} files moved • ${organizeResult.failedFiles.length} failed • ${organizeResult.createdFolders.length} folders created`}
+            actionLabel="Scan Again"
+            onActionClick={() => {
+              void handleScanClick();
+            }}
           />
         ) : null}
 
@@ -258,12 +263,12 @@ export default function OrganizerPage() {
             size="lg"
             icon={activeState === "organizing" ? "progress_activity" : "auto_mode"}
             className="rounded-2xl px-12"
-            disabled
+            disabled={!scanResult || activeState === "scanning" || activeState === "organizing"}
             onClick={() => {
               void handleOrganizeClick();
             }}
           >
-            Organize My Files (Coming Soon)
+            {activeState === "organizing" ? "Organizing files..." : "Organize My Files"}
           </Button>
           <p className="inline-flex items-center gap-2 text-sm text-[#566166]">
             <span className="material-symbols-outlined text-base">info</span>

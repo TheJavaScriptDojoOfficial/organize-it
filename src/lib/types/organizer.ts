@@ -29,19 +29,13 @@ export interface ScanResult {
   uncategorizedFileCount: number;
 }
 
-export interface OrganizedFileMove {
-  fileName: string;
-  fromPath: string;
-  toPath: string;
-  category: CategoryName;
-}
-
 export interface OrganizeResult {
   sourcePath: string;
-  outputPath: string;
-  organizedAtIso: string;
-  movedFiles: OrganizedFileMove[];
-  skippedFiles: string[];
+  totalFiles: number;
+  categories: CategoryScanSummary[];
+  movedCount: number;
   createdFolders: string[];
-  totalMovedFiles: number;
+  skippedFiles: string[];
+  failedFiles: Array<{ path: string; reason: string }>;
+  message: string;
 }

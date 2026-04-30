@@ -5,7 +5,7 @@ from collections import defaultdict
 from typing import Dict, List
 
 from .categorizer import detect_category
-from .models import CATEGORY_ORDER, CategoryScanSummary, ScannedFileItem, utc_now_iso
+from .models import CATEGORY_ORDER, CategoryScanSummary, ScannedFileItem
 
 
 def scan_source_directory(source_path: str) -> Dict[str, object]:
@@ -50,12 +50,13 @@ def scan_source_directory(source_path: str) -> Dict[str, object]:
             ).to_dict()
         )
 
-    uncategorized = category_names.get("Others", [])
     return {
         "sourcePath": absolute_source,
-        "scannedAtIso": utc_now_iso(),
         "totalFiles": len(scanned_items),
-        "categorizedFiles": [item.to_dict() for item in scanned_items],
-        "categorySummary": category_summary,
-        "uncategorizedFileCount": len(uncategorized),
+        "categories": [{"name": item["category"], "count": item["fileCount"]} for item in category_summary],
+        "movedCount": 0,
+        "createdFolders": [],
+        "skippedFiles": [],
+        "failedFiles": [],
+        "message": "Scan completed successfully.",
     }

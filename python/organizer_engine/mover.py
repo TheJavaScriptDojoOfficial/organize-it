@@ -5,7 +5,7 @@ import shutil
 from typing import Dict, List, Set
 
 from .categorizer import detect_category
-from .models import OrganizedFileMove, utc_now_iso
+from .models import OrganizedFileMove
 from .utils import build_duplicate_safe_path
 
 
@@ -16,6 +16,7 @@ def organize_source_directory(source_path: str) -> Dict[str, object]:
 
     moved_files: List[Dict[str, str]] = []
     skipped_files: List[str] = []
+    failed_files: List[Dict[str, str]] = []
     created_folders: Set[str] = set()
 
     with os.scandir(absolute_source) as entries:
@@ -40,15 +41,21 @@ def organize_source_directory(source_path: str) -> Dict[str, object]:
                     category=category,
                 ).to_dict()
             )
-        except Exception:
+        except Exception as error:
             skipped_files.append(entry.path)
+            failed_files.append({"path": entry.path, "reason": str(error)})
 
     return {
         "sourcePath": absolute_source,
-        "outputPath": absolute_source,
-        "organizedAtIso": utc_now_iso(),
-        "movedFiles": moved_files,
-        "skippedFiles": sorted(skipped_files),
+        "totalFiles": len(file_entries),
+        "categories": [],
+        "movedCount": len(moved_files),
         "createdFolders": sorted(created_folders),
-        "totalMovedFiles": len(moved_files),
+        "skippedFiles": sorted(skipped_files),
+        "failedFiles": sorted(failed_files, key=lambda item: item["path"].lower()),
+        "message": (
+            "Organization completed with partial failures."
+            if failed_files
+            else "Organization completed successfully."
+        ),
     }

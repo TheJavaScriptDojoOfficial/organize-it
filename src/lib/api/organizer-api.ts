@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { ORGANIZER_CATEGORIES } from "../constants/categories";
-import type { CategoryName, CategoryScanSummary, ScanResult, ScannedFileItem } from "../types/organizer";
+import type { CategoryName, CategoryScanSummary, OrganizeResult, ScanResult, ScannedFileItem } from "../types/organizer";
 
 interface LegacyScanEnvelope {
   ok: boolean;
@@ -26,6 +26,19 @@ interface ContractCategory {
 }
 
 interface ContractScanResponse {
+  success: boolean;
+  command: string;
+  sourcePath: string;
+  totalFiles: number;
+  categories: ContractCategory[];
+  movedCount: number;
+  createdFolders: string[];
+  skippedFiles: string[];
+  failedFiles: Array<{ path: string; reason: string }>;
+  message: string;
+}
+
+interface ContractOrganizeResponse {
   success: boolean;
   command: string;
   sourcePath: string;
@@ -79,6 +92,25 @@ function isContractScanResponse(value: unknown): value is ContractScanResponse {
     typeof payload.sourcePath === "string" &&
     typeof payload.totalFiles === "number" &&
     Array.isArray(payload.categories) &&
+    typeof payload.message === "string"
+  );
+}
+
+function isContractOrganizeResponse(value: unknown): value is ContractOrganizeResponse {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const payload = value as Partial<ContractOrganizeResponse>;
+  return (
+    typeof payload.success === "boolean" &&
+    payload.command === "organize" &&
+    typeof payload.sourcePath === "string" &&
+    typeof payload.totalFiles === "number" &&
+    typeof payload.movedCount === "number" &&
+    Array.isArray(payload.createdFolders) &&
+    Array.isArray(payload.skippedFiles) &&
+    Array.isArray(payload.failedFiles) &&
     typeof payload.message === "string"
   );
 }
@@ -144,4 +176,41 @@ function parsePythonScanJson(rawJson: string): ScanResult {
 export async function scanFolder(sourcePath: string): Promise<ScanResult> {
   const rawScanResponse = await invoke<string>("run_python_scan", { sourcePath });
   return parsePythonScanJson(rawScanResponse);
+}
+
+function mapContractToOrganizeResult(contract: ContractOrganizeResponse): OrganizeResult {
+  return {
+    sourcePath: contract.sourcePath,
+    totalFiles: contract.totalFiles,
+    categories: buildNormalizedCategorySummary(contract.categories),
+    movedCount: contract.movedCount,
+    createdFolders: contract.createdFolders,
+    skippedFiles: contract.skippedFiles,
+    failedFiles: contract.failedFiles,
+    message: contract.message,
+  };
+}
+
+function parsePythonOrganizeJson(rawJson: string): OrganizeResult {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawJson);
+  } catch {
+    throw new Error("Organize returned invalid JSON.");
+  }
+
+  if (!isContractOrganizeResponse(parsed)) {
+    throw new Error("Organize response did not match expected contract.");
+  }
+
+  if (!parsed.success) {
+    throw new Error(parsed.message || "Organize failed.");
+  }
+
+  return mapContractToOrganizeResult(parsed);
+}
+
+export async function organizeFolder(sourcePath: string): Promise<OrganizeResult> {
+  const rawOrganizeResponse = await invoke<string>("run_python_organize", { sourcePath });
+  return parsePythonOrganizeJson(rawOrganizeResponse);
 }

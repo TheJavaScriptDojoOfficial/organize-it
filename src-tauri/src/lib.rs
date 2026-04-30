@@ -3,6 +3,15 @@ use std::process::Command;
 
 #[tauri::command]
 fn run_python_scan(source_path: String) -> Result<String, String> {
+    run_python_command("scan", source_path)
+}
+
+#[tauri::command]
+fn run_python_organize(source_path: String) -> Result<String, String> {
+    run_python_command("organize", source_path)
+}
+
+fn run_python_command(command_name: &str, source_path: String) -> Result<String, String> {
     let project_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .ok_or_else(|| "Could not resolve project root".to_string())?
@@ -18,14 +27,14 @@ fn run_python_scan(source_path: String) -> Result<String, String> {
     let script_path_string = script_path.to_string_lossy().to_string();
     let output = match Command::new("python3")
         .arg(&script_path_string)
-        .arg("scan")
+        .arg(command_name)
         .arg(&source_path)
         .output()
     {
         Ok(result) => result,
         Err(_) => Command::new("python")
             .arg(&script_path_string)
-            .arg("scan")
+            .arg(command_name)
             .arg(&source_path)
             .output()
             .map_err(|err| format!("Failed to start Python process: {err}"))?,
@@ -35,7 +44,7 @@ fn run_python_scan(source_path: String) -> Result<String, String> {
     let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
     if output.status.success() {
         if stdout.is_empty() {
-            return Err("Python scan returned empty output.".to_string());
+            return Err(format!("Python {command_name} returned empty output."));
         }
         Ok(stdout)
     } else if !stderr.is_empty() {
@@ -51,7 +60,7 @@ fn run_python_scan(source_path: String) -> Result<String, String> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![run_python_scan])
+        .invoke_handler(tauri::generate_handler![run_python_scan, run_python_organize])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

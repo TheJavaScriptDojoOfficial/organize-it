@@ -41,8 +41,30 @@ def stable_json(payload: Dict[str, Any]) -> str:
 
 
 def success_payload(command: str, data: Dict[str, Any]) -> Dict[str, Any]:
-    return {"ok": True, "command": command, "data": data}
+    return {
+        "success": True,
+        "command": command,
+        "sourcePath": str(data.get("sourcePath", "")),
+        "totalFiles": int(data.get("totalFiles", 0)),
+        "categories": list(data.get("categories", [])),
+        "movedCount": int(data.get("movedCount", 0)),
+        "createdFolders": list(data.get("createdFolders", [])),
+        "skippedFiles": list(data.get("skippedFiles", [])),
+        "failedFiles": list(data.get("failedFiles", [])),
+        "message": str(data.get("message", "Operation completed successfully.")),
+    }
 
 
 def error_payload(command: str, message: str) -> Dict[str, Any]:
-    return {"ok": False, "command": command, "error": {"message": message}}
+    return {
+        "success": False,
+        "command": command,
+        "sourcePath": "",
+        "totalFiles": 0,
+        "categories": [],
+        "movedCount": 0,
+        "createdFolders": [],
+        "skippedFiles": [],
+        "failedFiles": [],
+        "message": message,
+    }
