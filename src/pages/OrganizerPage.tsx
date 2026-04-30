@@ -9,7 +9,11 @@ import SectionHeader from "../components/ui/SectionHeader";
 import StatusMessage from "../components/ui/StatusMessage";
 import { useSettings } from "../context/SettingsContext";
 import { organizeFolder, scanFolder } from "../lib/api/organizer-api";
-import type { CategoryName, OrganizeResult, ScanResult } from "../lib/types/organizer";
+import type {
+  CategoryName,
+  OrganizeResult,
+  ScanResult,
+} from "../lib/types/organizer";
 
 type PageState =
   | "empty"
@@ -22,7 +26,11 @@ type PageState =
 
 const CATEGORY_META: Record<
   CategoryName,
-  { icon: string; tone?: "default" | "primary" | "error" | "tertiary"; large?: boolean }
+  {
+    icon: string;
+    tone?: "default" | "primary" | "error" | "tertiary";
+    large?: boolean;
+  }
 > = {
   Images: { icon: "image", tone: "primary", large: true },
   Videos: { icon: "videocam" },
@@ -40,13 +48,18 @@ export default function OrganizerPage() {
   const didHydrateInitialPathRef = useRef(false);
   const [previewState, setPreviewState] = useState<PageState>("empty");
   const [selectedPath, setSelectedPath] = useState<string>(() => {
-    if (settings.rememberLastSelectedFolder && settings.lastSelectedFolder.length > 0) {
+    if (
+      settings.rememberLastSelectedFolder &&
+      settings.lastSelectedFolder.length > 0
+    ) {
       return settings.lastSelectedFolder;
     }
     return settings.defaultOrganizationFolder;
   });
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
-  const [organizeResult, setOrganizeResult] = useState<OrganizeResult | null>(null);
+  const [organizeResult, setOrganizeResult] = useState<OrganizeResult | null>(
+    null,
+  );
   const [errorText, setErrorText] = useState<string>("");
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isProcessingOrganize, setIsProcessingOrganize] = useState(false);
@@ -61,7 +74,10 @@ export default function OrganizerPage() {
       return;
     }
 
-    if (settings.rememberLastSelectedFolder && settings.lastSelectedFolder.length > 0) {
+    if (
+      settings.rememberLastSelectedFolder &&
+      settings.lastSelectedFolder.length > 0
+    ) {
       setSelectedPath(settings.lastSelectedFolder);
       setPreviewState("selected");
       return;
@@ -81,14 +97,19 @@ export default function OrganizerPage() {
   const activeState = previewState;
   const hasSelectedPath = selectedPath.length > 0;
   const canRenderResults =
-    hasSelectedPath && ["scanning", "preview", "organizing", "success", "error"].includes(activeState);
+    hasSelectedPath &&
+    ["scanning", "preview", "organizing", "success", "error"].includes(
+      activeState,
+    );
 
   const sortedCards = useMemo(() => {
     if (!scanResult) {
       return [];
     }
 
-    return [...scanResult.categorySummary].sort((a, b) => b.fileCount - a.fileCount);
+    return [...scanResult.categorySummary].sort(
+      (a, b) => b.fileCount - a.fileCount,
+    );
   }, [scanResult]);
 
   function clearSelection(state: PageState = "empty"): void {
@@ -131,12 +152,18 @@ export default function OrganizerPage() {
       persistLastSelectedFolder(selected);
     } catch {
       setPreviewState("error");
-      setErrorText("Could not open folder picker. Please retry in the desktop app.");
+      setErrorText(
+        "Could not open folder picker. Please retry in the desktop app.",
+      );
     }
   }
 
   async function handleScanClick(): Promise<void> {
-    if (!hasSelectedPath || activeState === "scanning" || activeState === "organizing") {
+    if (
+      !hasSelectedPath ||
+      activeState === "scanning" ||
+      activeState === "organizing"
+    ) {
       return;
     }
 
@@ -149,13 +176,19 @@ export default function OrganizerPage() {
       setPreviewState("preview");
     } catch (error) {
       setPreviewState("error");
-      const message = error instanceof Error ? error.message : "Scan failed unexpectedly.";
+      const message =
+        error instanceof Error ? error.message : "Scan failed unexpectedly.";
       setErrorText(`Scan failed: ${message}`);
     }
   }
 
   async function runOrganizeFlow(): Promise<void> {
-    if (!hasSelectedPath || activeState === "organizing" || activeState === "scanning" || isProcessingOrganize) {
+    if (
+      !hasSelectedPath ||
+      activeState === "organizing" ||
+      activeState === "scanning" ||
+      isProcessingOrganize
+    ) {
       return;
     }
 
@@ -173,7 +206,10 @@ export default function OrganizerPage() {
       setPreviewState("success");
     } catch (error) {
       setPreviewState("error");
-      const message = error instanceof Error ? error.message : "Organization failed unexpectedly.";
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Organization failed unexpectedly.";
       setErrorText(`Organization failed: ${message}`);
     } finally {
       setIsProcessingOrganize(false);
@@ -181,7 +217,12 @@ export default function OrganizerPage() {
   }
 
   async function handleOrganizeClick(): Promise<void> {
-    if (!hasSelectedPath || activeState === "organizing" || activeState === "scanning" || isProcessingOrganize) {
+    if (
+      !hasSelectedPath ||
+      activeState === "organizing" ||
+      activeState === "scanning" ||
+      isProcessingOrganize
+    ) {
       return;
     }
 
@@ -193,23 +234,37 @@ export default function OrganizerPage() {
     await runOrganizeFlow();
   }
 
-  const hasPartialFailures = Boolean(organizeResult && organizeResult.failedFiles.length > 0);
-  const showWarningState = Boolean(
-    organizeResult && (organizeResult.failedFiles.length > 0 || organizeResult.skippedFiles.length > 0),
+  const hasPartialFailures = Boolean(
+    organizeResult && organizeResult.failedFiles.length > 0,
   );
-  const showScanWarning = Boolean(scanResult && (scanResult.totalFiles === 0 || scanResult.skippedFiles.length > 0));
+  const showWarningState = Boolean(
+    organizeResult &&
+    (organizeResult.failedFiles.length > 0 ||
+      organizeResult.skippedFiles.length > 0),
+  );
+  const showScanWarning = Boolean(
+    scanResult &&
+    (scanResult.totalFiles === 0 || scanResult.skippedFiles.length > 0),
+  );
 
   return (
     <main className="min-h-screen bg-[#f7f9fb] px-6 py-10 text-[#2a3439]">
       <div className="mx-auto max-w-5xl space-y-10">
         <section className="space-y-3 text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight md:text-[2.75rem]">Organize Downloads</h1>
+          <h1 className="text-4xl font-extrabold tracking-tight md:text-[2.75rem]">
+            Organize Files
+          </h1>
           <p className="mx-auto max-w-2xl text-sm text-[#566166]">
-            Clean your folders in one click with the precision of a digital atelier. Automated
-            categorization at your fingertips.
+            Clean your folders in one click with the precision of a digital
+            atelier. Automated categorization at your fingertips.
           </p>
-          <Link to="/settings" className="inline-flex items-center gap-2 text-sm font-medium text-[#4d44e3]">
-            <span className="material-symbols-outlined text-[18px]">settings</span>
+          <Link
+            to="/settings"
+            className="inline-flex items-center gap-2 text-sm font-medium text-[#4d44e3]"
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              settings
+            </span>
             Open settings
           </Link>
         </section>
@@ -217,7 +272,11 @@ export default function OrganizerPage() {
         {activeState === "success" && organizeResult ? (
           <div className="space-y-4">
             <StatusMessage
-              title={showWarningState ? "Organization completed with warnings" : "Files organized successfully"}
+              title={
+                showWarningState
+                  ? "Organization completed with warnings"
+                  : "Files organized successfully"
+              }
               detail={`${organizeResult.movedCount}/${organizeResult.totalFiles} files moved • ${organizeResult.createdFolders.length} folders created`}
               tone={showWarningState ? "warning" : "success"}
             />
@@ -227,20 +286,36 @@ export default function OrganizerPage() {
               </p>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <div className="rounded-xl bg-[#f0f4f7] p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#566166]">Files moved</p>
-                  <p className="text-xl font-bold text-[#2a3439]">{organizeResult.movedCount}</p>
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#566166]">
+                    Files moved
+                  </p>
+                  <p className="text-xl font-bold text-[#2a3439]">
+                    {organizeResult.movedCount}
+                  </p>
                 </div>
                 <div className="rounded-xl bg-[#f0f4f7] p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#566166]">Folders created</p>
-                  <p className="text-xl font-bold text-[#2a3439]">{organizeResult.createdFolders.length}</p>
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#566166]">
+                    Folders created
+                  </p>
+                  <p className="text-xl font-bold text-[#2a3439]">
+                    {organizeResult.createdFolders.length}
+                  </p>
                 </div>
                 <div className="rounded-xl bg-[#f0f4f7] p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#566166]">Skipped files</p>
-                  <p className="text-xl font-bold text-[#2a3439]">{organizeResult.skippedFiles.length}</p>
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#566166]">
+                    Skipped files
+                  </p>
+                  <p className="text-xl font-bold text-[#2a3439]">
+                    {organizeResult.skippedFiles.length}
+                  </p>
                 </div>
                 <div className="rounded-xl bg-[#f0f4f7] p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#566166]">Failed files</p>
-                  <p className={`text-xl font-bold ${hasPartialFailures ? "text-[#9e3f4e]" : "text-[#2a3439]"}`}>
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#566166]">
+                    Failed files
+                  </p>
+                  <p
+                    className={`text-xl font-bold ${hasPartialFailures ? "text-[#9e3f4e]" : "text-[#2a3439]"}`}
+                  >
                     {organizeResult.failedFiles.length}
                   </p>
                 </div>
@@ -270,12 +345,19 @@ export default function OrganizerPage() {
         ) : null}
 
         {activeState === "error" ? (
-          <StatusMessage title="Something went wrong" detail={errorText || "Could not complete request"} />
+          <StatusMessage
+            title="Something went wrong"
+            detail={errorText || "Could not complete request"}
+          />
         ) : null}
 
         {activeState !== "success" && scanResult && showScanWarning ? (
           <StatusMessage
-            title={scanResult.totalFiles === 0 ? "No files ready to organize" : "Scan completed with notes"}
+            title={
+              scanResult.totalFiles === 0
+                ? "No files ready to organize"
+                : "Scan completed with notes"
+            }
             detail={scanResult.message}
             tone="warning"
           />
@@ -283,14 +365,23 @@ export default function OrganizerPage() {
 
         <section className="grid grid-cols-1 items-start gap-6 md:grid-cols-3">
           <Card className="space-y-5 p-7 md:col-span-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#566166]">Selected path</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#566166]">
+              Selected path
+            </p>
             <div className="flex flex-wrap gap-3">
               <div className="min-w-56 flex-1">
-                <Input value={selectedPath} icon="folder_open" readOnly placeholder="/Select folder to begin" />
+                <Input
+                  value={selectedPath}
+                  icon="folder_open"
+                  readOnly
+                  placeholder="/Select folder to begin"
+                />
               </div>
               <Button
                 variant="secondary"
-                disabled={activeState === "scanning" || activeState === "organizing"}
+                disabled={
+                  activeState === "scanning" || activeState === "organizing"
+                }
                 onClick={() => {
                   if (hasSelectedPath) {
                     clearSelection();
@@ -317,8 +408,16 @@ export default function OrganizerPage() {
               variant="primary"
               size="lg"
               className="w-full"
-              icon={activeState === "scanning" ? "progress_activity" : "search_insights"}
-              disabled={!hasSelectedPath || activeState === "scanning" || activeState === "organizing"}
+              icon={
+                activeState === "scanning"
+                  ? "progress_activity"
+                  : "search_insights"
+              }
+              disabled={
+                !hasSelectedPath ||
+                activeState === "scanning" ||
+                activeState === "organizing"
+              }
               onClick={() => {
                 void handleScanClick();
               }}
@@ -331,7 +430,8 @@ export default function OrganizerPage() {
         {!hasSelectedPath ? (
           <Card className="p-6">
             <p className="text-sm text-[#566166]">
-              Select a destination folder to preview categorized files before organizing.
+              Select a destination folder to preview categorized files before
+              organizing.
             </p>
           </Card>
         ) : null}
@@ -340,7 +440,11 @@ export default function OrganizerPage() {
           <section className="space-y-5">
             <SectionHeader
               title="File Breakdown"
-              subtitle={activeState === "organizing" ? "Applying folder structure..." : undefined}
+              subtitle={
+                activeState === "organizing"
+                  ? "Applying folder structure..."
+                  : undefined
+              }
               meta={
                 scanResult
                   ? `${scanResult.totalFiles} files detected`
@@ -349,7 +453,9 @@ export default function OrganizerPage() {
                     : "No scan data yet"
               }
             />
-            <p className="text-sm text-[#566166]">Files will be moved into categorized folders</p>
+            <p className="text-sm text-[#566166]">
+              Files will be moved into categorized folders
+            </p>
             {scanResult ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-6 md:grid-rows-2">
                 {sortedCards.map((categorySummary) => {
@@ -391,14 +497,22 @@ export default function OrganizerPage() {
           <Button
             variant="primary"
             size="lg"
-            icon={activeState === "organizing" ? "progress_activity" : "auto_mode"}
+            icon={
+              activeState === "organizing" ? "progress_activity" : "auto_mode"
+            }
             className="rounded-2xl px-12"
-            disabled={!hasSelectedPath || activeState === "scanning" || activeState === "organizing"}
+            disabled={
+              !hasSelectedPath ||
+              activeState === "scanning" ||
+              activeState === "organizing"
+            }
             onClick={() => {
               void handleOrganizeClick();
             }}
           >
-            {activeState === "organizing" ? "Organizing files..." : "Organize My Files"}
+            {activeState === "organizing"
+              ? "Organizing files..."
+              : "Organize My Files"}
           </Button>
           <p className="inline-flex items-center gap-2 text-sm text-[#566166]">
             <span className="material-symbols-outlined text-base">info</span>
@@ -416,13 +530,17 @@ export default function OrganizerPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b0f10]/40 px-4">
           <Card className="w-full max-w-lg space-y-5 p-6">
             <div>
-              <h3 className="text-lg font-bold text-[#2a3439]">Confirm organization</h3>
+              <h3 className="text-lg font-bold text-[#2a3439]">
+                Confirm organization
+              </h3>
               <p className="mt-2 text-sm text-[#566166]">
                 {settings.enablePreviewBeforeOrganizing
                   ? "We will scan this folder first, then move files into category folders."
                   : "Files will be moved into category folders immediately."}
               </p>
-              <p className="mt-3 rounded-xl bg-[#f0f4f7] px-3 py-2 text-xs text-[#2a3439]">{selectedPath}</p>
+              <p className="mt-3 rounded-xl bg-[#f0f4f7] px-3 py-2 text-xs text-[#2a3439]">
+                {selectedPath}
+              </p>
             </div>
             <div className="flex flex-wrap justify-end gap-3">
               <Button
