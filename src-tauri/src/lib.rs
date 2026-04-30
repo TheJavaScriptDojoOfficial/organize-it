@@ -1,6 +1,16 @@
 use std::path::PathBuf;
 use std::process::Command;
 
+fn is_dev_mode() -> bool {
+    cfg!(debug_assertions)
+}
+
+fn log_dev(message: &str) {
+    if is_dev_mode() {
+        println!("[python-bridge] {message}");
+    }
+}
+
 #[tauri::command]
 fn run_python_scan(source_path: String) -> Result<String, String> {
     run_python_command("scan", source_path)
@@ -25,6 +35,10 @@ fn run_python_command(command_name: &str, source_path: String) -> Result<String,
     }
 
     let script_path_string = script_path.to_string_lossy().to_string();
+    log_dev(&format!(
+        "Executing command={command_name} source_path={source_path} script={script_path_string}"
+    ));
+
     let output = match Command::new("python3")
         .arg(&script_path_string)
         .arg(command_name)
@@ -42,6 +56,17 @@ fn run_python_command(command_name: &str, source_path: String) -> Result<String,
 
     let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
     let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+    log_dev(&format!(
+        "Completed command={command_name} status={} stdout_bytes={} stderr_bytes={}",
+        output.status,
+        output.stdout.len(),
+        output.stderr.len()
+    ));
+
+    if is_dev_mode() && !stderr.is_empty() {
+        log_dev(&format!("stderr for {command_name}: {stderr}"));
+    }
+
     if output.status.success() {
         if stdout.is_empty() {
             return Err(format!("Python {command_name} returned empty output."));

@@ -53,6 +53,20 @@ interface ContractOrganizeResponse {
 }
 
 const KNOWN_CATEGORY_SET = new Set<string>(ORGANIZER_CATEGORIES);
+const IS_DEV_MODE = import.meta.env.DEV;
+
+function logDev(message: string, payload?: unknown): void {
+  if (!IS_DEV_MODE) {
+    return;
+  }
+
+  if (payload === undefined) {
+    console.debug(`[organizer-api] ${message}`);
+    return;
+  }
+
+  console.debug(`[organizer-api] ${message}`, payload);
+}
 
 function asCategoryName(value: string): CategoryName {
   if (KNOWN_CATEGORY_SET.has(value)) {
@@ -188,10 +202,15 @@ function toErrorMessage(error: unknown, operation: "scan" | "organize"): string 
 }
 
 function parsePythonScanJson(rawJson: string): ScanResult {
+  logDev("Raw scan JSON response", rawJson);
   let parsed: unknown;
   try {
     parsed = JSON.parse(rawJson);
-  } catch {
+  } catch (error) {
+    logDev("Failed to parse scan JSON response", {
+      error: error instanceof Error ? error.message : String(error),
+      rawJson,
+    });
     throw new Error("Scan returned invalid JSON.");
   }
 
@@ -207,9 +226,14 @@ function parsePythonScanJson(rawJson: string): ScanResult {
 
 export async function scanFolder(sourcePath: string): Promise<ScanResult> {
   try {
+    logDev("Invoking python scan command", { sourcePath });
     const rawScanResponse = await invoke<string>("run_python_scan", { sourcePath });
     return parsePythonScanJson(rawScanResponse);
   } catch (error) {
+    logDev("Scan invocation failed", {
+      sourcePath,
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw new Error(toErrorMessage(error, "scan"));
   }
 }
@@ -228,10 +252,15 @@ function mapContractToOrganizeResult(contract: ContractOrganizeResponse): Organi
 }
 
 function parsePythonOrganizeJson(rawJson: string): OrganizeResult {
+  logDev("Raw organize JSON response", rawJson);
   let parsed: unknown;
   try {
     parsed = JSON.parse(rawJson);
-  } catch {
+  } catch (error) {
+    logDev("Failed to parse organize JSON response", {
+      error: error instanceof Error ? error.message : String(error),
+      rawJson,
+    });
     throw new Error("Organize returned invalid JSON.");
   }
 
@@ -248,9 +277,14 @@ function parsePythonOrganizeJson(rawJson: string): OrganizeResult {
 
 export async function organizeFolder(sourcePath: string): Promise<OrganizeResult> {
   try {
+    logDev("Invoking python organize command", { sourcePath });
     const rawOrganizeResponse = await invoke<string>("run_python_organize", { sourcePath });
     return parsePythonOrganizeJson(rawOrganizeResponse);
   } catch (error) {
+    logDev("Organize invocation failed", {
+      sourcePath,
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw new Error(toErrorMessage(error, "organize"));
   }
 }
