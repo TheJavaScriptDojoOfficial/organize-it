@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Organize.it | Digital Atelier</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-on-surface": "#9a9d9f",
+                    "on-background": "#2a3439",
+                    "secondary-container": "#d3e4fe",
+                    "surface-container-lowest": "#ffffff",
+                    "outline": "#717c82",
+                    "inverse-surface": "#0b0f10",
+                    "surface-dim": "#cfdce3",
+                    "on-primary": "#faf6ff",
+                    "on-secondary": "#f7f9ff",
+                    "inverse-primary": "#8582ff",
+                    "primary-fixed-dim": "#d2d0ff",
+                    "secondary-fixed": "#d3e4fe",
+                    "on-tertiary": "#faf8ff",
+                    "primary-fixed": "#e2dfff",
+                    "primary-container": "#e2dfff",
+                    "on-secondary-fixed": "#314055",
+                    "surface-tint": "#4d44e3",
+                    "error-container": "#ff8b9a",
+                    "on-primary-fixed": "#2a13c5",
+                    "on-tertiary-container": "#444c65",
+                    "surface-container": "#e8eff3",
+                    "primary": "#4d44e3",
+                    "secondary-dim": "#44546a",
+                    "surface-container-high": "#e1e9ee",
+                    "background": "#f7f9fb",
+                    "on-primary-container": "#3f33d6",
+                    "on-error": "#fff7f7",
+                    "outline-variant": "#a9b4b9",
+                    "on-tertiary-fixed-variant": "#4e556f",
+                    "surface-bright": "#f7f9fb",
+                    "surface-container-highest": "#d9e4ea",
+                    "error-dim": "#4f0116",
+                    "surface": "#f7f9fb",
+                    "on-surface-variant": "#566166",
+                    "tertiary-fixed": "#d2d9f8",
+                    "surface-variant": "#d9e4ea",
+                    "on-secondary-container": "#435368",
+                    "error": "#9e3f4e",
+                    "surface-container-low": "#f0f4f7",
+                    "tertiary": "#575e78",
+                    "tertiary-dim": "#4b526c",
+                    "on-surface": "#2a3439",
+                    "secondary": "#506076",
+                    "on-primary-fixed-variant": "#4a40e0",
+                    "tertiary-container": "#d2d9f8",
+                    "on-tertiary-fixed": "#323951",
+                    "primary-dim": "#4034d7",
+                    "on-secondary-fixed-variant": "#4d5d73",
+                    "tertiary-fixed-dim": "#c4cbe9",
+                    "secondary-fixed-dim": "#c5d6f0",
+                    "on-error-container": "#782232"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.5rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter", "sans-serif"],
+                    "body": ["Inter", "sans-serif"],
+                    "label": ["Inter", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .premium-gradient {
+            background: linear-gradient(145deg, #4d44e3 0%, #4034d7 100%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+        }
+        .custom-shadow {
+            box-shadow: 0 12px 32px rgba(42, 52, 57, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface flex h-screen overflow-hidden">
+<!-- SideNavBar (Shared Component) -->
+<aside class="hidden md:flex h-screen w-64 flex-col py-6 gap-2 bg-surface-container-low tonal-shift">
+<div class="px-8 mb-8">
+<span class="text-primary font-bold text-lg tracking-tight">Organize.it</span>
+</div>
+<nav class="flex flex-col gap-1 px-4">
+<div class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-primary font-medium border-r-2 border-primary duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-[0.875rem]">Overview</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-[#2a3439]/60 hover:bg-white/50 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer">
+<span class="material-symbols-outlined" data-icon="folder_open">folder_open</span>
+<span class="text-[0.875rem]">All Files</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-[#2a3439]/60 hover:bg-white/50 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="text-[0.875rem]">Recent Scans</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-[#2a3439]/60 hover:bg-white/50 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="text-[0.875rem]">Archive</span>
+</div>
+</nav>
+<div class="mt-auto px-4 flex flex-col gap-1">
+<div class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-[#2a3439]/60 hover:bg-white/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="cloud_queue">cloud_queue</span>
+<span class="text-[0.875rem]">Storage Info</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-[#2a3439]/60 hover:bg-white/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="contact_support">contact_support</span>
+<span class="text-[0.875rem]">Support</span>
+</div>
+</div>
+</aside>
+<div class="flex flex-col flex-1 overflow-hidden">
+<!-- TopNavBar (Shared Component) -->
+<header class="w-full h-16 flex items-center justify-between px-8 bg-surface no-border tonal-shift font-inter tracking-tight text-sm">
+<div class="flex items-center gap-4">
+<span class="text-lg font-bold tracking-tight text-[#2a3439]">Organize Downloads</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="p-2 rounded-full hover:bg-slate-200/50 transition-colors duration-200 cursor-pointer active:scale-95 transition-transform text-slate-500">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</div>
+<div class="p-2 rounded-full hover:bg-slate-200/50 transition-colors duration-200 cursor-pointer active:scale-95 transition-transform text-slate-500">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto bg-surface px-8 py-12">
+<div class="max-w-4xl mx-auto space-y-12">
+<!-- Hero Section (Asymmetric Intent) -->
+<section class="space-y-2">
+<h1 class="text-[2.75rem] font-bold tracking-[-0.02em] leading-tight text-on-surface">Clean your folders in one click</h1>
+<p class="text-[0.875rem] text-on-surface-variant font-body leading-relaxed max-w-lg">
+                        Effortlessly sort downloads, screenshots, and messy documents into categorized, neat structures using our smart filing engine.
+                    </p>
+</section>
+<!-- Configuration Grid (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Folder Selection Card -->
+<div class="md:col-span-8 bg-surface-container-lowest rounded-xl p-8 custom-shadow border border-outline-variant/15">
+<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-2">
+<label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">Select Folder</label>
+<div class="flex gap-3">
+<div class="relative flex-1">
+<input class="w-full h-11 px-4 bg-surface-container-low rounded-lg text-on-surface-variant text-[0.875rem] cursor-not-allowed" disabled="" placeholder="/Users/username/Downloads" type="text"/>
+</div>
+<button class="h-11 px-6 bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-medium text-[0.875rem] rounded-lg transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                                        Browse
+                                    </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Scan Action Card -->
+<div class="md:col-span-4 bg-surface-container-lowest rounded-xl p-8 custom-shadow border border-outline-variant/15 flex flex-col justify-between">
+<div class="flex flex-col gap-2">
+<label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">Execution</label>
+<p class="text-[0.75rem] text-on-surface-variant">Analyze selected directory for organization potential.</p>
+</div>
+<button class="w-full h-11 mt-4 premium-gradient opacity-40 text-on-primary font-semibold text-[0.875rem] rounded-lg cursor-not-allowed flex items-center justify-center gap-2" disabled="">
+<span class="material-symbols-outlined text-[1.25rem]" data-icon="search">search</span>
+                            Scan Files
+                        </button>
+</div>
+</div>
+<!-- Preview Grid (Empty State Initially / Bento Category Cards) -->
+<section class="space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="text-[1rem] font-bold text-on-surface">Category Preview</h3>
+<span class="text-[0.75rem] text-on-surface-variant italic">No folder selected yet</span>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-6 gap-4">
+<!-- Image Category -->
+<div class="bg-surface-container-low p-5 rounded-xl border border-transparent hover:border-outline-variant/15 transition-all group cursor-default">
+<div class="w-10 h-10 rounded-lg bg-surface-container-lowest flex items-center justify-center mb-4 group-hover:bg-white shadow-sm">
+<span class="material-symbols-outlined text-primary" data-icon="image">image</span>
+</div>
+<span class="block text-[0.875rem] font-semibold text-on-surface">Images</span>
+<span class="text-[0.75rem] text-on-surface-variant">0 items</span>
+</div>
+<!-- Video Category -->
+<div class="bg-surface-container-low p-5 rounded-xl border border-transparent hover:border-outline-variant/15 transition-all group cursor-default">
+<div class="w-10 h-10 rounded-lg bg-surface-container-lowest flex items-center justify-center mb-4 group-hover:bg-white shadow-sm">
+<span class="material-symbols-outlined text-primary" data-icon="movie">movie</span>
+</div>
+<span class="block text-[0.875rem] font-semibold text-on-surface">Videos</span>
+<span class="text-[0.75rem] text-on-surface-variant">0 items</span>
+</div>
+<!-- Documents Category -->
+<div class="bg-surface-container-low p-5 rounded-xl border border-transparent hover:border-outline-variant/15 transition-all group cursor-default">
+<div class="w-10 h-10 rounded-lg bg-surface-container-lowest flex items-center justify-center mb-4 group-hover:bg-white shadow-sm">
+<span class="material-symbols-outlined text-primary" data-icon="description">description</span>
+</div>
+<span class="block text-[0.875rem] font-semibold text-on-surface">Docs</span>
+<span class="text-[0.75rem] text-on-surface-variant">0 items</span>
+</div>
+<!-- PDF Category -->
+<div class="bg-surface-container-low p-5 rounded-xl border border-transparent hover:border-outline-variant/15 transition-all group cursor-default">
+<div class="w-10 h-10 rounded-lg bg-surface-container-lowest flex items-center justify-center mb-4 group-hover:bg-white shadow-sm">
+<span class="material-symbols-outlined text-primary" data-icon="picture_as_pdf">picture_as_pdf</span>
+</div>
+<span class="block text-[0.875rem] font-semibold text-on-surface">PDFs</span>
+<span class="text-[0.75rem] text-on-surface-variant">0 items</span>
+</div>
+<!-- Code Category -->
+<div class="bg-surface-container-low p-5 rounded-xl border border-transparent hover:border-outline-variant/15 transition-all group cursor-default">
+<div class="w-10 h-10 rounded-lg bg-surface-container-lowest flex items-center justify-center mb-4 group-hover:bg-white shadow-sm">
+<span class="material-symbols-outlined text-primary" data-icon="code">code</span>
+</div>
+<span class="block text-[0.875rem] font-semibold text-on-surface">Code</span>
+<span class="text-[0.75rem] text-on-surface-variant">0 items</span>
+</div>
+<!-- Others Category -->
+<div class="bg-surface-container-low p-5 rounded-xl border border-transparent hover:border-outline-variant/15 transition-all group cursor-default">
+<div class="w-10 h-10 rounded-lg bg-surface-container-lowest flex items-center justify-center mb-4 group-hover:bg-white shadow-sm">
+<span class="material-symbols-outlined text-primary" data-icon="folder_zip">folder_zip</span>
+</div>
+<span class="block text-[0.875rem] font-semibold text-on-surface">Others</span>
+<span class="text-[0.75rem] text-on-surface-variant">0 items</span>
+</div>
+</div>
+</section>
+<!-- Final Action Section -->
+<div class="flex items-center justify-center py-12">
+<div class="relative group">
+<div class="absolute -inset-1 bg-gradient-to-r from-primary to-inverse-primary rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+<button class="relative premium-gradient h-14 px-12 rounded-xl text-on-primary font-bold text-[1rem] flex items-center gap-3 active:scale-95 transition-all duration-200 custom-shadow">
+<span class="material-symbols-outlined" data-icon="auto_fix_high">auto_fix_high</span>
+                            Organize Files
+                        </button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
