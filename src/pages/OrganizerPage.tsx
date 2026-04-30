@@ -302,7 +302,7 @@ export default function OrganizerPage() {
       <div className="mx-auto max-w-5xl space-y-8">
         <section className="space-y-4 text-center">
           <h1 className="text-4xl font-extrabold tracking-tight md:text-[2.75rem]">
-            Organize Files
+            Organize It
           </h1>
           <p className="mx-auto max-w-2xl text-sm leading-6 text-[#566166]">
             Sort messy folders into clean categories in seconds. Review first,
@@ -479,7 +479,8 @@ export default function OrganizerPage() {
               {activeState === "scanning" ? "Scanning files..." : "Scan files"}
             </Button>
             <p className="text-xs text-[#566166]">
-              Shortcuts: Cmd/Ctrl+O select, Cmd/Ctrl+K scan, Cmd/Ctrl+Enter organize.
+              Shortcuts: Cmd/Ctrl+O select, Cmd/Ctrl+K scan, Cmd/Ctrl+Enter
+              organize.
             </p>
           </Card>
         </section>
@@ -554,9 +555,7 @@ export default function OrganizerPage() {
           <Button
             variant="primary"
             size="lg"
-            icon={
-              activeState === "organizing" ? "progress_activity" : "bolt"
-            }
+            icon={activeState === "organizing" ? "progress_activity" : "bolt"}
             className="rounded-2xl px-12"
             disabled={
               !hasSelectedPath ||
@@ -573,7 +572,9 @@ export default function OrganizerPage() {
               : "Organize files"}
           </Button>
           <p className="inline-flex items-center gap-2 text-sm text-[#566166]">
-            <span className="material-symbols-outlined text-base">tips_and_updates</span>
+            <span className="material-symbols-outlined text-base">
+              tips_and_updates
+            </span>
             {activeState === "empty"
               ? settings.enablePreviewBeforeOrganizing
                 ? "Choose a folder to preview and apply changes."
