@@ -3,14 +3,26 @@ from __future__ import annotations
 import os
 
 
-EXTENSION_CATEGORY_MAP = {
+RAW_EXTENSION_CATEGORY_MAP = {
     "Images": {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg", ".heic"},
     "Videos": {".mp4", ".mov", ".mkv", ".avi", ".wmv", ".flv", ".webm"},
     "PDF": {".pdf"},
-    "Excel": {".xls", ".xlsx", ".csv"},
-    "Documents": {".doc", ".docx", ".txt", ".rtf", ".odt", ".ppt", ".pptx"},
-    "Zip": {".zip", ".rar", ".7z", ".tar", ".gz", ".bz2"},
-    "Applications": {".dmg", ".pkg", ".app", ".exe", ".msi", ".deb"},
+    "Excel": {".xls", ".xlsx", ".xlsm", ".csv"},
+    "Documents": {
+        ".doc",
+        ".docx",
+        ".txt",
+        ".rtf",
+        ".odt",
+        ".ppt",
+        ".pptx",
+        ".pages",
+        ".key",
+        ".odp",
+        ".ods",
+    },
+    "Zip": {".zip", ".zipx", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz", ".tgz"},
+    "Applications": {".dmg", ".pkg", ".app", ".exe", ".msi", ".deb", ".appimage"},
     "Code Files": {
         ".py",
         ".js",
@@ -33,6 +45,12 @@ EXTENSION_CATEGORY_MAP = {
         ".scss",
         ".sh",
     },
+}
+
+
+EXTENSION_CATEGORY_MAP = {
+    category: {extension.lower() for extension in extensions}
+    for category, extensions in RAW_EXTENSION_CATEGORY_MAP.items()
 }
 
 
