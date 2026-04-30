@@ -14,6 +14,7 @@ from organizer_engine.utils import (
 
 def main(argv: list[str]) -> int:
     command = "unknown"
+    source_path = ""
     try:
         command, source_path = split_action_and_path(argv)
         if command == "scan":
@@ -26,7 +27,7 @@ def main(argv: list[str]) -> int:
         print(stable_json(success_payload(command, data)))
         return 0
     except Exception as error:
-        print(stable_json(error_payload(command, str(error))))
+        print(stable_json(error_payload(command, str(error), source_path)))
         return 1
 
 

@@ -27,6 +27,8 @@ export interface ScanResult {
   categorizedFiles: ScannedFileItem[];
   categorySummary: CategoryScanSummary[];
   uncategorizedFileCount: number;
+  skippedFiles: string[];
+  message: string;
 }
 
 export interface OrganizeResult {

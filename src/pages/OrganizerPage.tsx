@@ -191,6 +191,7 @@ export default function OrganizerPage() {
   const showWarningState = Boolean(
     organizeResult && (organizeResult.failedFiles.length > 0 || organizeResult.skippedFiles.length > 0),
   );
+  const showScanWarning = Boolean(scanResult && (scanResult.totalFiles === 0 || scanResult.skippedFiles.length > 0));
 
   return (
     <main className="min-h-screen bg-[#f7f9fb] px-6 py-10 text-[#2a3439]">
@@ -264,6 +265,14 @@ export default function OrganizerPage() {
 
         {activeState === "error" ? (
           <StatusMessage title="Something went wrong" detail={errorText || "Could not complete request"} />
+        ) : null}
+
+        {activeState !== "success" && scanResult && showScanWarning ? (
+          <StatusMessage
+            title={scanResult.totalFiles === 0 ? "No files ready to organize" : "Scan completed with notes"}
+            detail={scanResult.message}
+            tone="warning"
+          />
         ) : null}
 
         <section className="grid grid-cols-1 items-start gap-6 md:grid-cols-3">

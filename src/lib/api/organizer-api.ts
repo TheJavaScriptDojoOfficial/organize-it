@@ -18,6 +18,7 @@ interface LegacyScanData {
   categorizedFiles: ScannedFileItem[];
   categorySummary: CategoryScanSummary[];
   uncategorizedFileCount: number;
+  skippedFiles?: string[];
 }
 
 interface ContractCategory {
@@ -125,6 +126,8 @@ function mapContractToScanResult(contract: ContractScanResponse): ScanResult {
     categorizedFiles: [],
     categorySummary,
     uncategorizedFileCount: categorySummary.find((item) => item.category === "Others")?.fileCount ?? 0,
+    skippedFiles: contract.skippedFiles,
+    message: contract.message,
   };
 }
 
@@ -152,7 +155,36 @@ function mapLegacyToScanResult(payload: LegacyScanEnvelope): ScanResult {
     categorizedFiles,
     categorySummary,
     uncategorizedFileCount: categorySummary.find((item) => item.category === "Others")?.fileCount ?? 0,
+    skippedFiles: data.skippedFiles ?? [],
+    message: "Scan completed successfully.",
   };
+}
+
+function toErrorMessage(error: unknown, operation: "scan" | "organize"): string {
+  const fallback = operation === "scan" ? "Scan failed unexpectedly." : "Organization failed unexpectedly.";
+  const raw = error instanceof Error ? error.message : String(error ?? fallback);
+  const normalized = raw.replace(/^Error invoking.*?:\s*/i, "").trim();
+  const lower = normalized.toLowerCase();
+
+  if (lower.includes("permission denied")) {
+    return "Permission denied. Please choose a folder you can read and write.";
+  }
+  if (lower.includes("does not exist") || lower.includes("no such file")) {
+    return "The selected folder is no longer available. Please pick it again.";
+  }
+  if (lower.includes("failed to start python process")) {
+    return "Could not start the Python service. Verify Python is installed and available.";
+  }
+  if (lower.includes("invalid json") || lower.includes("did not match expected contract")) {
+    return "The organizer service returned malformed data. Please retry.";
+  }
+  if (lower.includes("file is currently in use") || lower.includes("being used by another process")) {
+    return "Some files are locked by another app. Close those files and try again.";
+  }
+  if (!normalized) {
+    return fallback;
+  }
+  return normalized;
 }
 
 function parsePythonScanJson(rawJson: string): ScanResult {
@@ -174,8 +206,12 @@ function parsePythonScanJson(rawJson: string): ScanResult {
 }
 
 export async function scanFolder(sourcePath: string): Promise<ScanResult> {
-  const rawScanResponse = await invoke<string>("run_python_scan", { sourcePath });
-  return parsePythonScanJson(rawScanResponse);
+  try {
+    const rawScanResponse = await invoke<string>("run_python_scan", { sourcePath });
+    return parsePythonScanJson(rawScanResponse);
+  } catch (error) {
+    throw new Error(toErrorMessage(error, "scan"));
+  }
 }
 
 function mapContractToOrganizeResult(contract: ContractOrganizeResponse): OrganizeResult {
@@ -211,6 +247,10 @@ function parsePythonOrganizeJson(rawJson: string): OrganizeResult {
 }
 
 export async function organizeFolder(sourcePath: string): Promise<OrganizeResult> {
-  const rawOrganizeResponse = await invoke<string>("run_python_organize", { sourcePath });
-  return parsePythonOrganizeJson(rawOrganizeResponse);
+  try {
+    const rawOrganizeResponse = await invoke<string>("run_python_organize", { sourcePath });
+    return parsePythonOrganizeJson(rawOrganizeResponse);
+  } catch (error) {
+    throw new Error(toErrorMessage(error, "organize"));
+  }
 }

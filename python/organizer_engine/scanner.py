@@ -16,9 +16,26 @@ def scan_source_directory(source_path: str) -> Dict[str, object]:
     scanned_items: List[ScannedFileItem] = []
     category_names: Dict[str, List[str]] = defaultdict(list)
     category_sizes: Dict[str, int] = defaultdict(int)
+    skipped_hidden_files: List[str] = []
+    has_subfolders = False
 
-    with os.scandir(absolute_source) as entries:
-        file_entries = [entry for entry in entries if entry.is_file()]
+    try:
+        with os.scandir(absolute_source) as entries:
+            file_entries = []
+            for entry in entries:
+                if entry.name.startswith("."):
+                    if entry.is_file():
+                        skipped_hidden_files.append(entry.path)
+                    continue
+                if entry.is_dir():
+                    has_subfolders = True
+                    continue
+                if entry.is_file():
+                    file_entries.append(entry)
+    except PermissionError as error:
+        raise PermissionError(
+            f"Permission denied while reading folder: {absolute_source}"
+        ) from error
 
     file_entries.sort(key=lambda entry: entry.name.lower())
     for entry in file_entries:
@@ -50,13 +67,30 @@ def scan_source_directory(source_path: str) -> Dict[str, object]:
             ).to_dict()
         )
 
+    if file_entries:
+        message = "Scan completed successfully."
+        if skipped_hidden_files:
+            message = f"Scan completed. Skipped {len(skipped_hidden_files)} hidden file(s)."
+    elif has_subfolders:
+        message = (
+            "No files found in the selected folder. Only subfolders were detected."
+            if not skipped_hidden_files
+            else "No files found. Hidden files were skipped and only subfolders were detected."
+        )
+    else:
+        message = (
+            "Selected folder is empty."
+            if not skipped_hidden_files
+            else "No visible files found. Hidden files were skipped."
+        )
+
     return {
         "sourcePath": absolute_source,
         "totalFiles": len(scanned_items),
         "categories": [{"name": item["category"], "count": item["fileCount"]} for item in category_summary],
         "movedCount": 0,
         "createdFolders": [],
-        "skippedFiles": [],
+        "skippedFiles": sorted(skipped_hidden_files),
         "failedFiles": [],
-        "message": "Scan completed successfully.",
+        "message": message,
     }

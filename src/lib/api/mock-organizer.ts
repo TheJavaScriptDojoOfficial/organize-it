@@ -135,6 +135,8 @@ export const MOCK_SCAN_RESPONSE: ScanResult = {
     },
   ],
   uncategorizedFileCount: 0,
+  skippedFiles: [],
+  message: "Scan completed successfully.",
 };
 
 export const MOCK_ORGANIZE_RESPONSE: OrganizeResult = {

@@ -47,12 +47,15 @@ fn run_python_command(command_name: &str, source_path: String) -> Result<String,
             return Err(format!("Python {command_name} returned empty output."));
         }
         Ok(stdout)
+    } else if !stdout.is_empty() {
+        // Python error payloads are emitted as JSON on stdout.
+        Ok(stdout)
     } else if !stderr.is_empty() {
         Err(stderr)
-    } else if !stdout.is_empty() {
-        Err(stdout)
     } else {
-        Err("Python scan failed without an error message.".to_string())
+        Err(format!(
+            "Python {command_name} failed without an error message."
+        ))
     }
 }
 

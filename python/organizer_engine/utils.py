@@ -55,11 +55,11 @@ def success_payload(command: str, data: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def error_payload(command: str, message: str) -> Dict[str, Any]:
+def error_payload(command: str, message: str, source_path: str = "") -> Dict[str, Any]:
     return {
         "success": False,
         "command": command,
-        "sourcePath": "",
+        "sourcePath": source_path,
         "totalFiles": 0,
         "categories": [],
         "movedCount": 0,
