@@ -126,6 +126,9 @@ export default function OrganizerPage() {
   }
 
   const hasPartialFailures = Boolean(organizeResult && organizeResult.failedFiles.length > 0);
+  const showWarningState = Boolean(
+    organizeResult && (organizeResult.failedFiles.length > 0 || organizeResult.skippedFiles.length > 0),
+  );
 
   return (
     <main className="min-h-screen bg-[#f7f9fb] px-6 py-10 text-[#2a3439]">
@@ -139,14 +142,58 @@ export default function OrganizerPage() {
         </section>
 
         {activeState === "success" && organizeResult ? (
-          <StatusMessage
-            title={hasPartialFailures ? "Organization completed with partial failures" : "Files organized successfully"}
-            detail={`${organizeResult.movedCount}/${organizeResult.totalFiles} files moved • ${organizeResult.failedFiles.length} failed • ${organizeResult.createdFolders.length} folders created`}
-            actionLabel="Scan Again"
-            onActionClick={() => {
-              void handleScanClick();
-            }}
-          />
+          <div className="space-y-4">
+            <StatusMessage
+              title={showWarningState ? "Organization completed with warnings" : "Files organized successfully"}
+              detail={`${organizeResult.movedCount}/${organizeResult.totalFiles} files moved • ${organizeResult.createdFolders.length} folders created`}
+              tone={showWarningState ? "warning" : "success"}
+            />
+            <Card className="space-y-4 p-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#566166]">
+                Run summary
+              </p>
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <div className="rounded-xl bg-[#f0f4f7] p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#566166]">Files moved</p>
+                  <p className="text-xl font-bold text-[#2a3439]">{organizeResult.movedCount}</p>
+                </div>
+                <div className="rounded-xl bg-[#f0f4f7] p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#566166]">Folders created</p>
+                  <p className="text-xl font-bold text-[#2a3439]">{organizeResult.createdFolders.length}</p>
+                </div>
+                <div className="rounded-xl bg-[#f0f4f7] p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#566166]">Skipped files</p>
+                  <p className="text-xl font-bold text-[#2a3439]">{organizeResult.skippedFiles.length}</p>
+                </div>
+                <div className="rounded-xl bg-[#f0f4f7] p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#566166]">Failed files</p>
+                  <p className={`text-xl font-bold ${hasPartialFailures ? "text-[#9e3f4e]" : "text-[#2a3439]"}`}>
+                    {organizeResult.failedFiles.length}
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-3 pt-1">
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    clearSelection();
+                    void handleSelectFolder();
+                  }}
+                >
+                  Organize Another Folder
+                </Button>
+                <Button
+                  variant="secondary"
+                  disabled={!hasSelectedPath}
+                  onClick={() => {
+                    void handleScanClick();
+                  }}
+                >
+                  Rescan Folder
+                </Button>
+              </div>
+            </Card>
+          </div>
         ) : null}
 
         {activeState === "error" ? (
