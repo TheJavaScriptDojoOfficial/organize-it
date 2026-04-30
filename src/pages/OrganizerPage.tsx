@@ -6,10 +6,8 @@ import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
 import SectionHeader from "../components/ui/SectionHeader";
 import StatusMessage from "../components/ui/StatusMessage";
-import {
-  mockOrganizeFolder,
-  mockScanFolder,
-} from "../lib/api/mock-organizer";
+import { mockOrganizeFolder } from "../lib/api/mock-organizer";
+import { scanFolder } from "../lib/api/organizer-api";
 import type { CategoryName, OrganizeResult, ScanResult } from "../lib/types/organizer";
 
 type PageState =
@@ -46,7 +44,7 @@ export default function OrganizerPage() {
   const activeState = previewState;
   const hasSelectedPath = selectedPath.length > 0;
   const canRenderResults =
-    hasSelectedPath && ["preview", "organizing", "success", "error"].includes(activeState);
+    hasSelectedPath && ["scanning", "preview", "organizing", "success", "error"].includes(activeState);
 
   const sortedCards = useMemo(() => {
     if (!scanResult) {
@@ -100,12 +98,13 @@ export default function OrganizerPage() {
     setErrorText("");
     setOrganizeResult(null);
     try {
-      const result = await mockScanFolder();
+      const result = await scanFolder(selectedPath);
       setScanResult(result);
       setPreviewState("preview");
-    } catch {
+    } catch (error) {
       setPreviewState("error");
-      setErrorText("Scan failed in mock mode.");
+      const message = error instanceof Error ? error.message : "Scan failed unexpectedly.";
+      setErrorText(`Scan failed: ${message}`);
     }
   }
 
@@ -236,8 +235,10 @@ export default function OrganizerPage() {
               <Card className="p-6">
                 <p className="text-sm text-[#566166]">
                   {activeState === "organizing"
-                    ? "Loading mock scan details..."
-                    : "No scan preview available in this state."}
+                    ? "Loading scan details..."
+                    : activeState === "scanning"
+                      ? "Scanning folder and preparing preview..."
+                      : "No scan preview available in this state."}
                 </p>
               </Card>
             )}
@@ -250,12 +251,12 @@ export default function OrganizerPage() {
             size="lg"
             icon={activeState === "organizing" ? "progress_activity" : "auto_mode"}
             className="rounded-2xl px-12"
-            disabled={!scanResult || activeState === "scanning" || activeState === "organizing"}
+            disabled
             onClick={() => {
               void handleOrganizeClick();
             }}
           >
-            {activeState === "organizing" ? "Organizing..." : "Organize My Files"}
+            Organize My Files (Coming Soon)
           </Button>
           <p className="inline-flex items-center gap-2 text-sm text-[#566166]">
             <span className="material-symbols-outlined text-base">info</span>
