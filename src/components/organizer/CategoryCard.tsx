@@ -25,7 +25,12 @@ export default function CategoryCard({
   large = false,
 }: CategoryCardProps) {
   return (
-    <Card className={["p-5", large ? "md:col-span-2 md:row-span-2" : ""].join(" ")}>
+    <Card
+      className={[
+        "p-5 hover:-translate-y-0.5 hover:bg-[#f7f9fb]",
+        large ? "md:col-span-2 md:row-span-2" : "",
+      ].join(" ")}
+    >
       <div className="mb-4 flex items-start justify-between">
         <div className={["flex h-10 w-10 items-center justify-center rounded-lg", toneClasses[tone]].join(" ")}>
           <span className="material-symbols-outlined">{icon}</span>

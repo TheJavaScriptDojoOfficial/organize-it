@@ -95,6 +95,7 @@ export default function OrganizerPage() {
   ]);
 
   const activeState = previewState;
+  const isBusy = activeState === "scanning" || activeState === "organizing";
   const hasSelectedPath = selectedPath.length > 0;
   const canRenderResults =
     hasSelectedPath &&
@@ -111,6 +112,55 @@ export default function OrganizerPage() {
       (a, b) => b.fileCount - a.fileCount,
     );
   }, [scanResult]);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent): void {
+      if (event.defaultPrevented) {
+        return;
+      }
+
+      if (event.key === "Escape" && isConfirmModalOpen) {
+        setIsConfirmModalOpen(false);
+        return;
+      }
+
+      if (event.key === "Enter" && isConfirmModalOpen) {
+        event.preventDefault();
+        setIsConfirmModalOpen(false);
+        void runOrganizeFlow();
+        return;
+      }
+
+      if (isBusy) {
+        return;
+      }
+
+      const commandKey = event.metaKey || event.ctrlKey;
+      if (!commandKey) {
+        return;
+      }
+
+      if (event.key.toLowerCase() === "o") {
+        event.preventDefault();
+        void handleSelectFolder();
+      }
+
+      if (event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        void handleScanClick();
+      }
+
+      if (event.key === "Enter") {
+        event.preventDefault();
+        void handleOrganizeClick();
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isBusy, isConfirmModalOpen]);
 
   function clearSelection(state: PageState = "empty"): void {
     setPreviewState(state);
@@ -249,18 +299,19 @@ export default function OrganizerPage() {
 
   return (
     <main className="min-h-screen bg-[#f7f9fb] px-6 py-10 text-[#2a3439]">
-      <div className="mx-auto max-w-5xl space-y-10">
-        <section className="space-y-3 text-center">
+      <div className="mx-auto max-w-5xl space-y-8">
+        <section className="space-y-4 text-center">
           <h1 className="text-4xl font-extrabold tracking-tight md:text-[2.75rem]">
             Organize Files
           </h1>
-          <p className="mx-auto max-w-2xl text-sm text-[#566166]">
-            Clean your folders in one click with the precision of a digital
-            atelier. Automated categorization at your fingertips.
+          <p className="mx-auto max-w-2xl text-sm leading-6 text-[#566166]">
+            Sort messy folders into clean categories in seconds. Review first,
+            then organize with confidence.
           </p>
           <Link
             to="/settings"
-            className="inline-flex items-center gap-2 text-sm font-medium text-[#4d44e3]"
+            className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-[#4d44e3] transition-colors duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#eef1ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4d44e3]/40"
+            aria-label="Open settings"
           >
             <span className="material-symbols-outlined text-[18px]">
               settings
@@ -375,6 +426,7 @@ export default function OrganizerPage() {
                   icon="folder_open"
                   readOnly
                   placeholder="/Select folder to begin"
+                  aria-label="Selected folder path"
                 />
               </div>
               <Button
@@ -389,6 +441,7 @@ export default function OrganizerPage() {
                   }
                   void handleSelectFolder();
                 }}
+                title="Select folder (Cmd/Ctrl+O)"
               >
                 {hasSelectedPath ? "Clear" : "Select folder"}
               </Button>
@@ -411,7 +464,7 @@ export default function OrganizerPage() {
               icon={
                 activeState === "scanning"
                   ? "progress_activity"
-                  : "search_insights"
+                  : "travel_explore"
               }
               disabled={
                 !hasSelectedPath ||
@@ -421,17 +474,21 @@ export default function OrganizerPage() {
               onClick={() => {
                 void handleScanClick();
               }}
+              title="Scan files (Cmd/Ctrl+K)"
             >
-              {activeState === "scanning" ? "Scanning files..." : "Scan Files"}
+              {activeState === "scanning" ? "Scanning files..." : "Scan files"}
             </Button>
+            <p className="text-xs text-[#566166]">
+              Shortcuts: Cmd/Ctrl+O select, Cmd/Ctrl+K scan, Cmd/Ctrl+Enter organize.
+            </p>
           </Card>
         </section>
 
         {!hasSelectedPath ? (
           <Card className="p-6">
             <p className="text-sm text-[#566166]">
-              Select a destination folder to preview categorized files before
-              organizing.
+              Select a folder to start. You can run a scan preview first, then
+              organize when ready.
             </p>
           </Card>
         ) : null}
@@ -454,7 +511,7 @@ export default function OrganizerPage() {
               }
             />
             <p className="text-sm text-[#566166]">
-              Files will be moved into categorized folders
+              Files will move into category folders in this location.
             </p>
             {scanResult ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-6 md:grid-rows-2">
@@ -483,10 +540,10 @@ export default function OrganizerPage() {
               <Card className="p-6">
                 <p className="text-sm text-[#566166]">
                   {activeState === "organizing"
-                    ? "Loading scan details..."
+                    ? "Preparing final scan details..."
                     : activeState === "scanning"
-                      ? "Scanning folder and preparing preview..."
-                      : "No scan preview available in this state."}
+                      ? "Scanning folder and building preview..."
+                      : "No preview available yet. Run a scan to see category breakdown."}
                 </p>
               </Card>
             )}
@@ -498,7 +555,7 @@ export default function OrganizerPage() {
             variant="primary"
             size="lg"
             icon={
-              activeState === "organizing" ? "progress_activity" : "auto_mode"
+              activeState === "organizing" ? "progress_activity" : "bolt"
             }
             className="rounded-2xl px-12"
             disabled={
@@ -509,26 +566,32 @@ export default function OrganizerPage() {
             onClick={() => {
               void handleOrganizeClick();
             }}
+            title="Organize files (Cmd/Ctrl+Enter)"
           >
             {activeState === "organizing"
               ? "Organizing files..."
-              : "Organize My Files"}
+              : "Organize files"}
           </Button>
           <p className="inline-flex items-center gap-2 text-sm text-[#566166]">
-            <span className="material-symbols-outlined text-base">info</span>
+            <span className="material-symbols-outlined text-base">tips_and_updates</span>
             {activeState === "empty"
               ? settings.enablePreviewBeforeOrganizing
-                ? "Pick a folder, then organize to preview and apply changes"
-                : "Pick a folder and organize directly, or scan first"
+                ? "Choose a folder to preview and apply changes."
+                : "Choose a folder to organize now, or scan first."
               : settings.enablePreviewBeforeOrganizing
-                ? "Organize will always run a scan preview first"
-                : "Preview is optional; organize can run directly"}
+                ? "Organize always runs a final scan before moving files."
+                : "Scan is optional when preview-before-organize is off."}
           </p>
         </section>
       </div>
       {isConfirmModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b0f10]/40 px-4">
-          <Card className="w-full max-w-lg space-y-5 p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b0f10]/40 px-4 backdrop-blur-sm">
+          <Card
+            className="w-full max-w-lg space-y-5 p-6"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Confirm organization"
+          >
             <div>
               <h3 className="text-lg font-bold text-[#2a3439]">
                 Confirm organization

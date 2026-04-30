@@ -6,7 +6,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export default function Input({ className = "", icon, ...props }: InputProps) {
   return (
-    <div className="flex items-center gap-2 rounded-xl bg-[#f0f4f7] px-4 py-3">
+    <div className="flex items-center gap-2 rounded-xl bg-[#f0f4f7] px-4 py-3 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus-within:ring-2 focus-within:ring-[#4d44e3]/40">
       {icon ? (
         <span className="material-symbols-outlined text-[18px] text-[#566166]">{icon}</span>
       ) : null}

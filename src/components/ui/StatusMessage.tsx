@@ -11,14 +11,14 @@ interface StatusMessageProps {
 
 const toneStyles: Record<"success" | "warning", { card: string; iconWrap: string; icon: string }> = {
   success: {
-    card: "border-l-[#4d44e3]",
+    card: "bg-[#ffffff]",
     iconWrap: "bg-[#e2dfff] text-[#4d44e3]",
-    icon: "check_circle",
+    icon: "task_alt",
   },
   warning: {
-    card: "border-l-[#9e3f4e]",
+    card: "bg-[#ffffff]",
     iconWrap: "bg-[#ffe4e8] text-[#9e3f4e]",
-    icon: "warning",
+    icon: "warning_amber",
   },
 };
 
@@ -32,7 +32,11 @@ export default function StatusMessage({
   const style = toneStyles[tone];
 
   return (
-    <Card className={`flex flex-col gap-4 border-l-4 p-5 md:flex-row md:items-center md:justify-between ${style.card}`}>
+    <Card
+      className={`flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between ${style.card}`}
+      role="status"
+      aria-live="polite"
+    >
       <div className="flex items-center gap-3">
         <div className={`flex h-11 w-11 items-center justify-center rounded-full ${style.iconWrap}`}>
           <span className="material-symbols-outlined">{style.icon}</span>
