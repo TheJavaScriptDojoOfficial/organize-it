@@ -1,13 +1,16 @@
 {
   "name": "organize-it",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Desktop app to scan and organize messy folders into categories.",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
