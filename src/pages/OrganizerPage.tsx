@@ -108,13 +108,18 @@ export default function OrganizerPage() {
   }
 
   async function handleOrganizeClick(): Promise<void> {
-    if (!scanResult || !hasSelectedPath || activeState === "organizing" || activeState === "scanning") {
+    if (!hasSelectedPath || activeState === "organizing" || activeState === "scanning") {
       return;
     }
 
     setPreviewState("organizing");
     setErrorText("");
     try {
+      if (!scanResult) {
+        const latestScan = await scanFolder(selectedPath);
+        setScanResult(latestScan);
+      }
+
       const result = await organizeFolder(selectedPath);
       setOrganizeResult(result);
       setPreviewState("success");
@@ -310,7 +315,7 @@ export default function OrganizerPage() {
             size="lg"
             icon={activeState === "organizing" ? "progress_activity" : "auto_mode"}
             className="rounded-2xl px-12"
-            disabled={!scanResult || activeState === "scanning" || activeState === "organizing"}
+            disabled={!hasSelectedPath || activeState === "scanning" || activeState === "organizing"}
             onClick={() => {
               void handleOrganizeClick();
             }}
