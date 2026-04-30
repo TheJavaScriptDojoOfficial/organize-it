@@ -47,6 +47,8 @@ export default function OrganizerPage() {
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [organizeResult, setOrganizeResult] = useState<OrganizeResult | null>(null);
   const [errorText, setErrorText] = useState<string>("");
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isProcessingOrganize, setIsProcessingOrganize] = useState(false);
 
   useEffect(() => {
     if (selectedPath.length > 0) {
@@ -89,6 +91,7 @@ export default function OrganizerPage() {
     setScanResult(null);
     setOrganizeResult(null);
     setErrorText("");
+    setIsConfirmModalOpen(false);
   }
 
   function persistLastSelectedFolder(path: string): void {
@@ -145,27 +148,16 @@ export default function OrganizerPage() {
     }
   }
 
-  async function handleOrganizeClick(): Promise<void> {
-    if (!hasSelectedPath || activeState === "organizing" || activeState === "scanning") {
+  async function runOrganizeFlow(): Promise<void> {
+    if (!hasSelectedPath || activeState === "organizing" || activeState === "scanning" || isProcessingOrganize) {
       return;
     }
 
-    if (settings.confirmBeforeOrganize) {
-      const approved = window.confirm(`Organize files in this folder?\n\n${selectedPath}`);
-      if (!approved) {
-        return;
-      }
-    }
-
-    if (settings.enablePreviewBeforeOrganizing && !scanResult) {
-      await handleScanClick();
-      return;
-    }
-
+    setIsProcessingOrganize(true);
     setPreviewState("organizing");
     setErrorText("");
     try {
-      if (!scanResult) {
+      if (settings.enablePreviewBeforeOrganizing || !scanResult) {
         const latestScan = await scanFolder(selectedPath);
         setScanResult(latestScan);
       }
@@ -177,7 +169,22 @@ export default function OrganizerPage() {
       setPreviewState("error");
       const message = error instanceof Error ? error.message : "Organization failed unexpectedly.";
       setErrorText(`Organization failed: ${message}`);
+    } finally {
+      setIsProcessingOrganize(false);
     }
+  }
+
+  async function handleOrganizeClick(): Promise<void> {
+    if (!hasSelectedPath || activeState === "organizing" || activeState === "scanning" || isProcessingOrganize) {
+      return;
+    }
+
+    if (settings.confirmBeforeOrganize) {
+      setIsConfirmModalOpen(true);
+      return;
+    }
+
+    await runOrganizeFlow();
   }
 
   const hasPartialFailures = Boolean(organizeResult && organizeResult.failedFiles.length > 0);
@@ -287,7 +294,9 @@ export default function OrganizerPage() {
                 ? "Scanning"
                 : activeState === "organizing"
                   ? "Organizing"
-                  : "Ready to index"}
+                  : settings.enablePreviewBeforeOrganizing
+                    ? "Preview available"
+                    : "Preview optional"}
             </p>
             <Button
               variant="primary"
@@ -379,11 +388,49 @@ export default function OrganizerPage() {
           <p className="inline-flex items-center gap-2 text-sm text-[#566166]">
             <span className="material-symbols-outlined text-base">info</span>
             {activeState === "empty"
-              ? "Pick a folder to begin scanning"
-              : "Files will be moved into categorized folders"}
+              ? settings.enablePreviewBeforeOrganizing
+                ? "Pick a folder, then organize to preview and apply changes"
+                : "Pick a folder and organize directly, or scan first"
+              : settings.enablePreviewBeforeOrganizing
+                ? "Organize will always run a scan preview first"
+                : "Preview is optional; organize can run directly"}
           </p>
         </section>
       </div>
+      {isConfirmModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b0f10]/40 px-4">
+          <Card className="w-full max-w-lg space-y-5 p-6">
+            <div>
+              <h3 className="text-lg font-bold text-[#2a3439]">Confirm organization</h3>
+              <p className="mt-2 text-sm text-[#566166]">
+                {settings.enablePreviewBeforeOrganizing
+                  ? "We will scan this folder first, then move files into category folders."
+                  : "Files will be moved into category folders immediately."}
+              </p>
+              <p className="mt-3 rounded-xl bg-[#f0f4f7] px-3 py-2 text-xs text-[#2a3439]">{selectedPath}</p>
+            </div>
+            <div className="flex flex-wrap justify-end gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setIsConfirmModalOpen(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setIsConfirmModalOpen(false);
+                  void runOrganizeFlow();
+                }}
+              >
+                Confirm and organize
+              </Button>
+            </div>
+          </Card>
+        </div>
+      ) : null}
     </main>
   );
 }
