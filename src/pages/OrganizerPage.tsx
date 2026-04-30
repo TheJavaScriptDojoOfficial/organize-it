@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { open } from "@tauri-apps/plugin-dialog";
 import CategoryCard from "../components/organizer/CategoryCard";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
@@ -6,8 +7,6 @@ import Input from "../components/ui/Input";
 import SectionHeader from "../components/ui/SectionHeader";
 import StatusMessage from "../components/ui/StatusMessage";
 import {
-  MOCK_ORGANIZE_RESPONSE,
-  MOCK_SELECTED_PATH,
   mockOrganizeFolder,
   mockScanFolder,
 } from "../lib/api/mock-organizer";
@@ -21,16 +20,6 @@ type PageState =
   | "organizing"
   | "success"
   | "error";
-
-const PREVIEW_STATES: Array<{ key: PageState; label: string }> = [
-  { key: "empty", label: "Empty" },
-  { key: "selected", label: "Selected Folder" },
-  { key: "scanning", label: "Scanning" },
-  { key: "preview", label: "Preview" },
-  { key: "organizing", label: "Organizing" },
-  { key: "success", label: "Success" },
-  { key: "error", label: "Error" },
-];
 
 const CATEGORY_META: Record<
   CategoryName,
@@ -56,7 +45,8 @@ export default function OrganizerPage() {
 
   const activeState = previewState;
   const hasSelectedPath = selectedPath.length > 0;
-  const canRenderResults = ["preview", "organizing", "success", "error"].includes(activeState);
+  const canRenderResults =
+    hasSelectedPath && ["preview", "organizing", "success", "error"].includes(activeState);
 
   const sortedCards = useMemo(() => {
     if (!scanResult) {
@@ -66,62 +56,39 @@ export default function OrganizerPage() {
     return [...scanResult.categorySummary].sort((a, b) => b.fileCount - a.fileCount);
   }, [scanResult]);
 
-  function seedForState(state: PageState): void {
-    switch (state) {
-      case "empty":
-        setSelectedPath("");
-        setScanResult(null);
-        setOrganizeResult(null);
-        setErrorText("");
-        break;
-      case "selected":
-        setSelectedPath(MOCK_SELECTED_PATH);
-        setScanResult(null);
-        setOrganizeResult(null);
-        setErrorText("");
-        break;
-      case "scanning":
-        setSelectedPath(MOCK_SELECTED_PATH);
-        setScanResult(null);
-        setOrganizeResult(null);
-        setErrorText("");
-        break;
-      case "preview":
-        setSelectedPath(MOCK_SELECTED_PATH);
-        void mockScanFolder().then((mockResult) => {
-          setScanResult(mockResult);
-          setOrganizeResult(null);
-        });
-        setErrorText("");
-        break;
-      case "organizing":
-        setSelectedPath(MOCK_SELECTED_PATH);
-        void mockScanFolder().then((mockResult) => {
-          setScanResult(mockResult);
-        });
-        setOrganizeResult(null);
-        setErrorText("");
-        break;
-      case "success":
-        setSelectedPath(MOCK_SELECTED_PATH);
-        void mockScanFolder().then((mockResult) => {
-          setScanResult(mockResult);
-        });
-        setOrganizeResult(MOCK_ORGANIZE_RESPONSE);
-        setErrorText("");
-        break;
-      case "error":
-        setSelectedPath(MOCK_SELECTED_PATH);
-        setScanResult(null);
-        setOrganizeResult(null);
-        setErrorText("Could not organize files. Please retry once the folder is accessible.");
-        break;
-    }
+  function clearSelection(state: PageState = "empty"): void {
+    setPreviewState(state);
+    setSelectedPath("");
+    setScanResult(null);
+    setOrganizeResult(null);
+    setErrorText("");
   }
 
-  function onPreviewStateChange(state: PageState): void {
-    setPreviewState(state);
-    seedForState(state);
+  async function handleSelectFolder(): Promise<void> {
+    if (activeState === "scanning" || activeState === "organizing") {
+      return;
+    }
+
+    setErrorText("");
+    try {
+      const selected = await open({
+        directory: true,
+        multiple: false,
+        title: "Choose a folder to organize",
+      });
+
+      if (!selected || Array.isArray(selected)) {
+        return;
+      }
+
+      setSelectedPath(selected);
+      setPreviewState("selected");
+      setScanResult(null);
+      setOrganizeResult(null);
+    } catch {
+      setPreviewState("error");
+      setErrorText("Could not open folder picker. Please retry in the desktop app.");
+    }
   }
 
   async function handleScanClick(): Promise<void> {
@@ -170,24 +137,6 @@ export default function OrganizerPage() {
           </p>
         </section>
 
-        <section className="space-y-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#566166]">
-            State Preview Controls
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {PREVIEW_STATES.map((stateOption) => (
-              <Button
-                key={stateOption.key}
-                variant={previewState === stateOption.key ? "primary" : "secondary"}
-                size="sm"
-                onClick={() => onPreviewStateChange(stateOption.key)}
-              >
-                {stateOption.label}
-              </Button>
-            ))}
-          </div>
-        </section>
-
         {activeState === "success" && organizeResult ? (
           <StatusMessage
             title="Files organized successfully"
@@ -209,15 +158,16 @@ export default function OrganizerPage() {
               </div>
               <Button
                 variant="secondary"
+                disabled={activeState === "scanning" || activeState === "organizing"}
                 onClick={() => {
-                  if (activeState === "empty") {
-                    onPreviewStateChange("selected");
+                  if (hasSelectedPath) {
+                    clearSelection();
                     return;
                   }
-                  onPreviewStateChange("empty");
+                  void handleSelectFolder();
                 }}
               >
-                {activeState === "empty" ? "Use mock folder" : "Clear"}
+                {hasSelectedPath ? "Clear" : "Select folder"}
               </Button>
             </div>
           </Card>
@@ -243,6 +193,14 @@ export default function OrganizerPage() {
             </Button>
           </Card>
         </section>
+
+        {!hasSelectedPath ? (
+          <Card className="p-6">
+            <p className="text-sm text-[#566166]">
+              Select a destination folder to preview categorized files before organizing.
+            </p>
+          </Card>
+        ) : null}
 
         {canRenderResults ? (
           <section className="space-y-5">
